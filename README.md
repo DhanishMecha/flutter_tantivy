@@ -60,15 +60,16 @@ Future<void> main() async {
 // Add a single document
 final doc = Document(
   id: '1',
+  title: 'Flutter Overview',
   text: 'Flutter is an open-source UI toolkit by Google',
 );
 await addDocument(doc: doc);
 
 // Batch add documents (more efficient)
 final docs = [
-  Document(id: '1', text: 'Flutter is a UI toolkit'),
-  Document(id: '2', text: 'Rust is a systems programming language'),
-  Document(id: '3', text: 'Tantivy is a search engine library'),
+  Document(id: '1', title: 'Flutter Overview', text: 'Flutter is a UI toolkit'),
+  Document(id: '2', title: 'Rust Language', text: 'Rust is a systems programming language'),
+  Document(id: '3', title: 'Tantivy Search', text: 'Tantivy is a search engine library'),
 ];
 await addDocumentsBatch(docs: docs);
 ```
@@ -84,6 +85,7 @@ final results = await searchDocuments(
 for (final result in results) {
   print('Score: ${result.score}');
   print('ID: ${result.doc.id}');
+  print('Title: ${result.doc.title}');
   print('Text: ${result.doc.text}');
 }
 ```
@@ -93,7 +95,7 @@ for (final result in results) {
 ```dart
 final doc = getDocumentById(id: '1');
 if (doc != null) {
-  print('Found: ${doc.text}');
+  print('Found: ${doc.title} - ${doc.text}');
 }
 ```
 
@@ -102,6 +104,7 @@ if (doc != null) {
 ```dart
 final updatedDoc = Document(
   id: '1',
+  title: 'Updated Flutter Overview',
   text: 'Flutter is an open-source UI toolkit created by Google',
 );
 await updateDocument(doc: updatedDoc);
@@ -169,6 +172,7 @@ This is useful when you need to perform multiple operations atomically.
 ```dart
 class Document {
   final String id;    // Unique identifier
+  final String title; // Document title
   final String text;  // Searchable text content
 }
 ```
