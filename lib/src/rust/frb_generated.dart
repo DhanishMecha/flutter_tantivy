@@ -504,11 +504,12 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Document dco_decode_document(dynamic raw) {
     // Codec=Dco (DartCObject based), see doc to use other codecs
     final arr = raw as List<dynamic>;
-    if (arr.length != 2)
-      throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+    if (arr.length != 3)
+      throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
     return Document(
       id: dco_decode_String(arr[0]),
-      text: dco_decode_String(arr[1]),
+      title: dco_decode_String(arr[1]),
+      text: dco_decode_String(arr[2]),
     );
   }
 
@@ -602,8 +603,9 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   Document sse_decode_document(SseDeserializer deserializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_String(deserializer);
+    var var_title = sse_decode_String(deserializer);
     var var_text = sse_decode_String(deserializer);
-    return Document(id: var_id, text: var_text);
+    return Document(id: var_id, title: var_title, text: var_text);
   }
 
   @protected
@@ -733,6 +735,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   void sse_encode_document(Document self, SseSerializer serializer) {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.id, serializer);
+    sse_encode_String(self.title, serializer);
     sse_encode_String(self.text, serializer);
   }
 
