@@ -12,7 +12,7 @@ use tantivy::{doc, Index, IndexReader, IndexWriter, ReloadPolicy, TantivyDocumen
 pub struct Document {
     pub id: String,
     pub title: String,
-    pub text: String,
+    pub content: String,
 }
 
 // Flutter에서 사용할 검색 결과 구조체
@@ -30,7 +30,7 @@ struct TantivyApi {
     schema: Schema,
     id_field: Field,
     title_field: Field,
-    text_field: Field,
+    content_field: Field,
 }
 
 // 전역 상태를 Lazy와 Arc<Mutex<...>>로 안전하게 관리
@@ -61,8 +61,8 @@ pub fn init_tantivy(dir_path: String) -> Result<()> {
         schema_builder.add_text_field("id", STRING | STORED);
         // Title 필드는 제목 검색을 위해 사용됩니다.
         schema_builder.add_text_field("title", TEXT | STORED);
-        // Text 필드는 전문 검색을 위해 사용됩니다.
-        schema_builder.add_text_field("text", TEXT | STORED);
+        // Content 필드는 전문 검색을 위해 사용됩니다.
+        schema_builder.add_text_field("content", TEXT | STORED);
         let schema = schema_builder.build();
         let index = Index::create_in_dir(&index_dir, schema.clone())?;
         (index, schema)
@@ -70,7 +70,7 @@ pub fn init_tantivy(dir_path: String) -> Result<()> {
 
     let id_field = schema.get_field("id").map_err(|_| anyhow!("'id' field not found"))?;
     let title_field = schema.get_field("title").map_err(|_| anyhow!("'title' field not found"))?;
-    let text_field = schema.get_field("text").map_err(|_| anyhow!("'text' field not found"))?;
+    let content_field = schema.get_field("content").map_err(|_| anyhow!("'content' field not found"))?;
 
     let writer = index.writer(50_000_000)?; // 50MB heap
 
@@ -87,7 +87,7 @@ pub fn init_tantivy(dir_path: String) -> Result<()> {
         schema,
         id_field,
         title_field,
-        text_field,
+        content_field,
     };
 
     *state_lock = Some(api);
@@ -111,7 +111,7 @@ pub fn add_document(doc: Document) -> Result<()> {
     let mut tantivy_doc = TantivyDocument::new();
     tantivy_doc.add_text(api.id_field, &doc.id);
     tantivy_doc.add_text(api.title_field, &doc.title);
-    tantivy_doc.add_text(api.text_field, &doc.text);
+    tantivy_doc.add_text(api.content_field, &doc.content);
 
     writer.add_document(tantivy_doc)?;
     writer.commit()?;
@@ -130,7 +130,7 @@ pub fn search_documents(query: String, top_k: usize) -> Result<Vec<SearchResult>
     // 전역 reader 재사용
     let searcher = api.reader.searcher();
 
-    let query_parser = QueryParser::for_index(&api.index, vec![api.title_field, api.text_field]);
+    let query_parser = QueryParser::for_index(&api.index, vec![api.title_field, api.content_field]);
     let query = query_parser.parse_query(&query)?;
 
     let top_docs = searcher.search(&query, &TopDocs::with_limit(top_k))?;
@@ -146,14 +146,14 @@ pub fn search_documents(query: String, top_k: usize) -> Result<Vec<SearchResult>
             .and_then(|v| v.as_str())
             .unwrap_or_default()
             .to_string();
-        let text = retrieved_doc.get_first(api.text_field)
+        let content = retrieved_doc.get_first(api.content_field)
             .and_then(|v| v.as_str())
             .unwrap_or_default()
             .to_string();
 
         results.push(SearchResult {
             score,
-            doc: Document { id, title, text },
+            doc: Document { id, title, content },
         });
     }
 
@@ -181,12 +181,12 @@ pub fn get_document_by_id(id: String) -> Result<Option<Document>> {
             .and_then(|v| v.as_str())
             .unwrap_or_default()
             .to_string();
-        let text = retrieved_doc.get_first(api.text_field)
+        let content = retrieved_doc.get_first(api.content_field)
             .and_then(|v| v.as_str())
             .unwrap_or_default()
             .to_string();
 
-        return Ok(Some(Document { id, title, text }));
+        return Ok(Some(Document { id, title, content }));
     }
 
     Ok(None)
@@ -228,7 +228,7 @@ pub fn add_documents_batch(docs: Vec<Document>) -> Result<()> {
         let mut tantivy_doc = TantivyDocument::new();
         tantivy_doc.add_text(api.id_field, &doc.id);
         tantivy_doc.add_text(api.title_field, &doc.title);
-        tantivy_doc.add_text(api.text_field, &doc.text);
+        tantivy_doc.add_text(api.content_field, &doc.content);
 
         writer.add_document(tantivy_doc)?;
     }
@@ -284,7 +284,7 @@ pub fn add_document_no_commit(doc: Document) -> Result<()> {
     let mut tantivy_doc = TantivyDocument::new();
     tantivy_doc.add_text(api.id_field, &doc.id);
     tantivy_doc.add_text(api.title_field, &doc.title);
-    tantivy_doc.add_text(api.text_field, &doc.text);
+    tantivy_doc.add_text(api.content_field, &doc.content);
 
     writer.add_document(tantivy_doc)?;
 

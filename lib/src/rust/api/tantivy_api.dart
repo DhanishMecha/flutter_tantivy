@@ -49,12 +49,16 @@ Future<void> deleteDocumentNoCommit({required String id}) =>
 class Document {
   final String id;
   final String title;
-  final String text;
+  final String content;
 
-  const Document({required this.id, required this.title, required this.text});
+  const Document({
+    required this.id,
+    required this.title,
+    required this.content,
+  });
 
   @override
-  int get hashCode => id.hashCode ^ title.hashCode ^ text.hashCode;
+  int get hashCode => id.hashCode ^ title.hashCode ^ content.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -63,7 +67,7 @@ class Document {
           runtimeType == other.runtimeType &&
           id == other.id &&
           title == other.title &&
-          text == other.text;
+          content == other.content;
 }
 
 class SearchResult {

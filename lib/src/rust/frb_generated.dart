@@ -509,7 +509,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     return Document(
       id: dco_decode_String(arr[0]),
       title: dco_decode_String(arr[1]),
-      text: dco_decode_String(arr[2]),
+      content: dco_decode_String(arr[2]),
     );
   }
 
@@ -604,8 +604,8 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     var var_id = sse_decode_String(deserializer);
     var var_title = sse_decode_String(deserializer);
-    var var_text = sse_decode_String(deserializer);
-    return Document(id: var_id, title: var_title, text: var_text);
+    var var_content = sse_decode_String(deserializer);
+    return Document(id: var_id, title: var_title, content: var_content);
   }
 
   @protected
@@ -736,7 +736,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
     // Codec=Sse (Serialization based), see doc to use other codecs
     sse_encode_String(self.id, serializer);
     sse_encode_String(self.title, serializer);
-    sse_encode_String(self.text, serializer);
+    sse_encode_String(self.content, serializer);
   }
 
   @protected
